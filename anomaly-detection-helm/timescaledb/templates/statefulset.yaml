@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "timescaledb.fullname" . }}
+  labels:
+    app: {{ include "timescaledb.name" . }}
+spec:
+  serviceName: {{ include "timescaledb.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "timescaledb.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "timescaledb.name" . }}
+    spec:
+      containers:
+      - name: {{ include "timescaledb.name" . }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        env:
+        - name: POSTGRES_USER
+          value: {{ .Values.secrets.postgresUser | quote }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "timescaledb.fullname" . }}-secrets
+              key: postgres-password
+        - name: POSTGRES_DB
+          value: {{ .Values.secrets.postgresDatabase | quote }}
+        volumeMounts:
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d
+        {{- if .Values.persistence.enabled }}
+        - name: timescaledb-data
+          mountPath: /var/lib/postgresql/data
+        {{- end }}
+        readinessProbe:
+          {{- if .Values.probes.readiness.enabled }}
+          exec:
+            command:
+              - sh
+              - -c
+              - "pg_isready -U {{ .Values.secrets.postgresUser }}"
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          {{- end }}
+        livenessProbe:
+          {{- if .Values.probes.liveness.enabled }}
+          exec:
+            command:
+              - sh
+              - -c
+              - "pg_isready -U {{ .Values.secrets.postgresUser }}"
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          {{- end }}
+      volumes:
+      - name: init-script
+        configMap:
+          name: {{ include "timescaledb.fullname" . }}-init-script
+      {{- if not .Values.persistence.enabled }}
+      # Fallback volume when persistence is disabled so the mount exists
+      - name: timescaledb-data
+        emptyDir: {}
+      {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: timescaledb-data
+      labels:
+        app: {{ include "timescaledb.name" . }}
+    spec:
+      accessModes:
+        - {{ .Values.persistence.accessMode }}
+      resources:
+        requests:
+          storage: {{ .Values.persistence.storage }}
+      {{- if .Values.persistence.storageClass }}
+      storageClassName: {{ .Values.persistence.storageClass }}
+      {{- end }}
+  {{- end }}

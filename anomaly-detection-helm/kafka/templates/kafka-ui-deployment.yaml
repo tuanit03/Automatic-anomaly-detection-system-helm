@@ -1,0 +1,28 @@
+{{- if .Values.kafkaUI.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  labels:
+    app: kafka-ui
+spec:
+  replicas: {{ .Values.kafkaUI.replicaCount }}
+  selector:
+    matchLabels:
+      app: kafka-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-ui
+    spec:
+      containers:
+      - name: kafka-ui
+        image: "{{ .Values.kafkaUI.image.repository }}:{{ .Values.kafkaUI.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.kafkaUI.service.port }}
+        env:
+        - name: KAFKA_CLUSTERS_0_NAME
+          value: "local"
+        - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+          value: "{{- range $i, $b := .Values.brokers -}}{{if $i}},{{end}}{{ $b.name }}:{{ $.Values.service.brokerPort }}{{- end }}"
+{{- end }}

@@ -1,0 +1,76 @@
+# General
+replicaCount: 1
+createNamespace: false # set true nếu muốn chart tự tạo namespace
+namespace: anomaly-system
+
+
+image:
+  repository: registry.gitlab.com/natuan12a03/anomaly-detection-app/anomaly-backend
+  tag: "55df1b42d887d5e35bf567212d05821793446bc9"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: gitlab-registry
+
+
+service:
+  type: ClusterIP
+  port: 8000
+
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+
+probes:
+  readiness:
+    path: /health
+    port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+  liveness:
+    path: /health
+    port: 8000
+    initialDelaySeconds: 60
+    periodSeconds: 30
+
+
+persistence:
+  reports:
+    enabled: false
+
+
+config:
+  DB_HOST: "timescaledb"
+  DB_PORT: "5432"
+  DB_NAME: "anomaly_detection"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9092"
+  KAFKA_TOPIC_LOGS: "logs"
+  KAFKA_TOPIC_CLASSIFICATIONS: "classifications"
+  KAFKA_CONSUMER_GROUP: "dashboard-backend"
+  LOG_LEVEL: "INFO"
+  MOCK_DATA_ENABLED: "True"
+  MOCK_DATA_INTERVAL_SECONDS: "5"
+  CORS_ORIGINS: "http://frontend:80,http://localhost:3000,http://frontend.anomaly-system.svc.cluster.local,http://anomaly-detection.local"
+  SLACK_NOTIFICATION_ENABLED: "True"
+  SLACK_NOTIFICATION_INTERVAL_SECONDS: "10"
+
+
+secrets:
+  DB_USER: postgres      
+  DB_PASSWORD: postgres  
+  SLACK_BOT_TOKEN: 
+  SLACK_CHANNEL_ID: 
+
+
+# Extra envs if muốn override or thêm
+extraEnv: []
+
+
+# Optional image pull secret
+useImagePullSecrets: true

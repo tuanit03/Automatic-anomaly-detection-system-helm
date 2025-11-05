@@ -1,0 +1,15 @@
+{{- if .Values.kafkaUI.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  labels:
+    app: kafka-ui
+spec:
+  selector:
+    app: kafka-ui
+  ports:
+    - port: {{ .Values.kafkaUI.service.port }}
+      targetPort: {{ .Values.kafkaUI.service.port }}
+  type: ClusterIP
+{{- end }}

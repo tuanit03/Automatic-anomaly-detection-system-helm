@@ -1,0 +1,16 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: gitlab-registry
+  namespace: anomaly-system
+spec:
+  encryptedData:
+    .dockerconfigjson: AgCgRWx+3X6h5Kfnjc/6YMtl1f1hMqxkFZRB4XtwPJA9DJxF1Fzs1uMLJMFYQJ+vxpSjT/scQ1eQqNjK4LABN/YT4foO59ExxJ4U9vv8PR6YyqPNJF5w4ahYTOxAv+03mGeD50VOr7bNcbxDdZrzeFj6dXDTHucsX1a/y6sRjCnINQhgt2uwFKBy7aGiFlW6hsddbSiMWLGNANBkrGQoabubtpOvNIMsaaUPpJbqtquYIKkEbpbX5zsc8NjvuYUcVbeStXa+UBZMUsLIKU/Q4dwNxd15AKA/7ZjwM0geDBWenErIbKp0qVdXfVmKJY4hAwVYDuSi1ZLvci8snKEIjA/K8o0OcRKMcuYx4ZSJgfriM4dJHgS1i8VRBa5cx/saF0L6XtTwwA7UPZ99luzouVHV+JbSliOQTbkqQgWOY3Jb5S4ixbuyQIfR+Fgi7LFbLpRCx9Y7sBxWWBiIUHmpmtqvWLmHkS+/In7rmjWDlHZDIJw1cIvkJQLg5zgPuKu80vay4v1cXKz1+sT4Nkp42i3r92A4SlXAQpxKH/lvliZAXwg6DJVgD1870LurRNKONLHNRddZAAGyLV2arZZgnu06D0/17365FRkbFj4GOoAlTDf4PL9mZCQRXNjVdis2mti/HOJkvIOGr5mKCdYZe8Jv3JvMHsiiesmWOUuFO8lEjn+wtC/4P2SoMHNyDMLbCl0FN6jVahagBE0jzrBWj2EF58GlL79iuP3Zm9FP7e3C2zsNgtbCxsR1HGR6K8pSMn9qsTjGzucl2cbar9KENu0ZHb0XMocFdQczua1izZ3tyHIzZUW3Vw/tzNcIPfnUH56rR+GVWyztDjn7OiRP6umqKTvuS5EI97VQxgCZwXvxKPAY9G+LpPzxVg2lXDE6eLMJfeSnkdVMHERkscPN1RSaqFc4MtILw0uwZD1l1+IOzf9Esj2rgswHO5kjYoePPkYG89N1qJYFKNxeeoQ9H4yfDj4HN1Y2+Noe1MKshS5+fFS1rr1lDxI6SE9zdMPE4b+t2Lon+K193a9KSyPBa2Zz6qD51QdrTxG2
+  template:
+    metadata:
+      creationTimestamp: null
+      name: gitlab-registry
+      namespace: anomaly-system
+    type: kubernetes.io/dockerconfigjson
+

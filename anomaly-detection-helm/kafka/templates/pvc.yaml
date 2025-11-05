@@ -1,0 +1,19 @@
+{{- range $i, $b := .Values.brokers }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-data" ($b.name) }}
+  labels:
+    app: {{ include "kafka.name" $ }}
+    broker: {{ ($b.name) }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ ($b.storage) }}
+  {{- if $.Values.storageClass }}
+  storageClassName: {{ $.Values.storageClass }}
+  {{- end }}
+---
+{{- end }}

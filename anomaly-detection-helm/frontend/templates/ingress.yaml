@@ -1,0 +1,26 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "frontend.fullname" . }}-ingress
+  labels:
+    app: {{ include "frontend.name" . }}
+  annotations:
+{{- range $k, $v := .Values.ingress.annotations }}
+    {{ $k }}: {{ quote $v }}
+{{- end }}
+spec:
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      {{- range .Values.ingress.paths }}
+      - path: {{ .path | default "/" }}
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ .backendService }}
+            port:
+              number: {{ .backendPort }}
+      {{- end }}
+  {{- end }}

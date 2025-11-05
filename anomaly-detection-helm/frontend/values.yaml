@@ -1,0 +1,31 @@
+replicaCount: 1
+createNamespace: false
+namespace: anomaly-system
+image:
+  repository: registry.gitlab.com/natuan12a03/anomaly-detection-app/anomaly-frontend
+  tag: "dd80498d350cf3471bd08b2d73d83c49dc2babf0"
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: gitlab-registry
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  host: anomaly-detection.local
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+  paths:
+    - path: /
+      backendService: "frontend"
+      backendPort: 80
+    - path: /api/
+      backendService: "backend"
+      backendPort: 8000
+    - path: /reports/
+      backendService: "backend"
+      backendPort: 8000
+config:
+  REACT_APP_BACKEND_URL: ""
+# Extra envs if needed
+extraEnv: []

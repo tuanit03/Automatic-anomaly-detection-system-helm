@@ -1,0 +1,24 @@
+{{- range $i, $b := .Values.brokers }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ ($b.name) }}
+  labels:
+    app: {{ include "kafka.name" $ }}
+    broker: {{ ($b.name) }}
+spec:
+  selector:
+    app: {{ ($b.name) }}
+  ports:
+    - name: kafka
+      port: {{ $.Values.service.brokerPort }}
+      targetPort: {{ $.Values.service.brokerPort }}
+    - name: controller
+      port: {{ $.Values.service.controllerPort }}
+      targetPort: {{ $.Values.service.controllerPort }}
+    - name: external
+      port: {{ $.Values.service.externalPort }}
+      targetPort: {{ $.Values.service.externalPort }}
+  type: ClusterIP
+---
+{{- end }}

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: timescaledb
+description: TimescaleDB (Postgres) chart with init SQL to create hypertables
+type: application
+version: 0.1.0
+appVersion: "14"

@@ -1,0 +1,71 @@
+{{- range $i, $b := .Values.brokers }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ ($b.name) }}
+  labels:
+    app: {{ ($b.name) }}
+    chart: {{ include "kafka.name" $ }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ ($b.name) }}
+  template:
+    metadata:
+      labels:
+        app: {{ ($b.name) }}
+    spec:
+      containers:
+      - name: {{ ($b.name) }}
+        image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+        imagePullPolicy: {{ $.Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ $.Values.service.brokerPort }}
+        - containerPort: {{ $.Values.service.controllerPort }}
+        - containerPort: {{ $.Values.service.externalPort }}
+        env:
+        - name: KAFKA_NODE_ID
+          value: "{{ $b.id }}"
+        - name: KAFKA_BROKER_ID
+          value: "{{ $b.id }}"
+        - name: KAFKA_PROCESS_ROLES
+          value: "{{ $.Values.cluster.processRoles }}"
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+          value: "{{ $.Values.cluster.controllerQuorumVoters }}"
+        - name: KAFKA_LISTENERS
+          value: "{{ $.Values.cluster.listeners }}"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://{{ $b.name }}:{{ $.Values.service.brokerPort }},EXTERNAL://{{ $b.name }}:{{ $.Values.service.externalPort }}"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "{{ $.Values.cluster.listenerSecurityProtocolMap }}"
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES
+          value: "{{ $.Values.cluster.controllerListenerNames }}"
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: "{{ $.Values.cluster.interBrokerListenerName }}"
+        - name: CLUSTER_ID
+          value: "{{ $.Values.cluster.clusterId }}"
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "{{ $.Values.cluster.offsetsTopicReplicationFactor }}"
+        - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+          value: "{{ $.Values.cluster.groupInitialRebalanceDelayMs }}"
+        - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+          value: "{{ $.Values.cluster.defaultReplicationFactor }}"
+        - name: KAFKA_MIN_INSYNC_REPLICAS
+          value: "{{ $.Values.cluster.minInSyncReplicas }}"
+        resources:
+          requests:
+            memory: "{{ $.Values.resources.requests.memory }}"
+            cpu: "{{ $.Values.resources.requests.cpu }}"
+          limits:
+            memory: "{{ $.Values.resources.limits.memory }}"
+            cpu: "{{ $.Values.resources.limits.cpu }}"
+        volumeMounts:
+        - name: {{ printf "%s-data" $b.name }}
+          mountPath: /var/lib/kafka/data
+      volumes:
+      - name: {{ printf "%s-data" $b.name }}
+        persistentVolumeClaim:
+          claimName: {{ printf "%s-data" $b.name }}
+---
+{{- end }}

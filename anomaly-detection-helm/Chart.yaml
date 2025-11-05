@@ -1,0 +1,16 @@
+apiVersion: v2
+name: anomaly-system
+version: 0.1.0
+dependencies:
+  - name: frontend
+    version: 0.1.0
+    repository: file://./frontend
+  - name: backend
+    version: 0.1.0
+    repository: file://./backend
+  - name: kafka
+    version: 0.1.0
+    repository: file://./kafka
+  - name: timescaledb
+    version: 0.1.0
+    repository: file://./timescaledb

@@ -1,0 +1,22 @@
+{{- if and .Values.kafkaUI.enabled .Values.kafkaUI.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kafka-ui-ingress
+  annotations:
+{{- range $k, $v := .Values.kafkaUI.ingress.annotations }}
+    {{ $k }}: {{ quote $v }}
+{{- end }}
+spec:
+  rules:
+    - host: {{ .Values.kafkaUI.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kafka-ui
+                port:
+                  number: {{ .Values.kafkaUI.service.port }}
+{{- end }}

@@ -1,0 +1,16 @@
+{{- if .Values.headless.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.headless.name }}
+  labels:
+    app: {{ include "kafka.name" . }}
+spec:
+  clusterIP: None
+  selector:
+    app: {{ include "kafka.name" . }}
+  ports:
+    - name: kafka
+      port: {{ .Values.service.brokerPort }}
+      targetPort: {{ .Values.service.brokerPort }}
+{{- end }}
