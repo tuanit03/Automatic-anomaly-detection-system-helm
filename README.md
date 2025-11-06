@@ -8,6 +8,7 @@ Tài liệu này hướng dẫn từng bước để triển khai hệ thống A
 - kubectl (kết nối tới cluster)
 - Helm (để cài chart nếu cần)
 - Quyền tạo namespace, secret, serviceaccount trên cluster
+- 2 folder tương ứng với 2 repo trên Gitlab
 
 Kiểm tra:
 - docker --version
@@ -35,31 +36,6 @@ echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.co
 sudo apt-get update
 sudo apt-get install helm
 ```
-
-## Sealed Secrets (tạo secret an toàn để lưu vào git)
-1. Cài kubeseal (binary):
-```bash
-curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.23.0/kubeseal-0.23.0-linux-amd64.tar.gz"
-tar -xvzf kubeseal-0.23.0-linux-amd64.tar.gz kubeseal
-sudo install -m 755 kubeseal /usr/local/bin/kubeseal
-rm -f kubeseal-0.23.0-linux-amd64.tar.gz kubeseal
-```
-2. Tạo Docker registry secret (chạy local, sau đó seal để commit vào repo):
-```bash
-kubectl create secret docker-registry gitlab-registry \
-  --docker-server=registry.gitlab.com \
-  --docker-username=<YOUR_USERNAME> \
-  --docker-password=<YOUR_GITLAB_TOKEN> \
-  --docker-email=<YOUR_USER_EMAIL> \
-  -n anomaly-system \
-  --dry-run=client -o yaml > secret.yaml
-```
-3. Seal secret (sử dụng controller Sealed Secrets đang chạy trên cluster):
-```bash
-kubeseal --controller-namespace kube-system --controller-name sealed-secrets-controller \
-  --format yaml < secret.yaml > sealed-gitlab-registry.yaml
-```
-- Lưu file `sealed-gitlab-registry.yaml` vào repo `anomaly-detection-helm` (an toàn để commit).
 
 ## Cài Ingress Controller (NGINX)
 Cài NGINX ingress controller từ manifests chính thức:
@@ -138,6 +114,44 @@ kubectl logs <pod-name> -n anomaly-system
 kubectl get applications -n argocd
 ```
 
+## Sealed Secrets (tạo secret an toàn để ArgoCD pull image từ Gitlab)
+1. Cài Controller:
+```bash
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.23.0/controller.yaml
+```
+2. Cài kubeseal client (binary):
+```bash
+curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.23.0/kubeseal-0.23.0-linux-amd64.tar.gz"
+tar -xvzf kubeseal-0.23.0-linux-amd64.tar.gz kubeseal
+sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+rm -f kubeseal-0.23.0-linux-amd64.tar.gz kubeseal
+```
+3. Tạo Docker registry secret (chạy local, sau đó seal để commit vào repo):
+```bash
+kubectl create secret docker-registry gitlab-registry \
+  --docker-server=registry.gitlab.com \
+  --docker-username=<YOUR_USERNAME> \
+  --docker-password=<YOUR_GITLAB_TOKEN> \
+  --docker-email=<YOUR_USER_EMAIL> \
+  -n anomaly-system \
+  --dry-run=client -o yaml > secret.yaml
+```
+4. Seal secret (sử dụng controller Sealed Secrets đang chạy trên cluster):
+```bash
+kubeseal --controller-namespace kube-system --controller-name sealed-secrets-controller \
+  --format yaml < secret.yaml > sealed-gitlab-registry.yaml
+```
+5. Apply sealed secret (hoặc commit sealed-gitlab-registry.yaml vào repo và ArgoCD sẽ apply)
+```bash
+kubectl apply -f sealed-gitlab-registry.yaml
+```
+6. Kiểm tra secret đã unsealed chưa
+```bash
+kubectl get secret gitlab-registry -n anomaly-system -o yaml
+```
+- Lưu file `sealed-gitlab-registry.yaml` vào repo `anomaly-detection-helm` (an toàn để commit).
+- Tham khảo tại: https://github.com/bitnami-labs/sealed-secrets/releases
+
 ## Dọn dẹp (ví dụ)
 - Xóa ArgoCD:
 ```bash
@@ -162,3 +176,4 @@ kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/con
 ## Ghi chú
 - Thay tất cả placeholder như `<YOUR_USERNAME>`, `<YOUR_GITLAB_TOKEN>`, `<YOUR_USER_EMAIL>` bằng giá trị thật trước khi chạy lệnh.
 - Tùy môi trường cluster (cloud provider, bare-metal) có thể cần điều chỉnh cấu hình Ingress/LoadBalancer.
+
